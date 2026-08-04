@@ -8,19 +8,19 @@
     "net8.0": []
   },
   "packageFolders": {
-    "/home/thiago/.nuget/packages/": {}
+    "/home/al.thiago.oliveira/.nuget/packages/": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/thiago/desafio_inoa/App/App.csproj",
+      "projectUniqueName": "/home/al.thiago.oliveira/Downloads/desafio_inoa/App/App.csproj",
       "projectName": "App",
-      "projectPath": "/home/thiago/desafio_inoa/App/App.csproj",
-      "packagesPath": "/home/thiago/.nuget/packages/",
-      "outputPath": "/home/thiago/desafio_inoa/App/obj/",
+      "projectPath": "/home/al.thiago.oliveira/Downloads/desafio_inoa/App/App.csproj",
+      "packagesPath": "/home/al.thiago.oliveira/.nuget/packages/",
+      "outputPath": "/home/al.thiago.oliveira/Downloads/desafio_inoa/App/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "/home/thiago/.nuget/NuGet/NuGet.Config"
+        "/home/al.thiago.oliveira/.nuget/NuGet/NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net8.0"
@@ -38,6 +38,11 @@
         "warnAsError": [
           "NU1605"
         ]
+      },
+      "restoreAuditProperties": {
+        "enableAudit": "true",
+        "auditLevel": "low",
+        "auditMode": "direct"
       }
     },
     "frameworks": {
@@ -59,7 +64,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "/usr/lib/dotnet/sdk/8.0.129/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "/home/al.thiago.oliveira/.dotnet/sdk/8.0.423/PortableRuntimeIdentifierGraph.json"
       }
     }
   }
