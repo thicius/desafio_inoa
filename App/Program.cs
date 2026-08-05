@@ -11,7 +11,8 @@ Console.WriteLine($"Valores recebidos!\n\nAtivo: {ativo}\nVenda: {venda}\nCompra
 
 // lê o arquivo com as configurações do e-mail
 string jsonTexto = File.ReadAllText("appsettings.json");
-AppSettings config = JsonSerializer.Deserialize<AppSettings>(jsonTexto);
+AppSettings config = JsonSerializer.Deserialize<AppSettings>(jsonTexto) 
+    ?? throw new Exception("Não foi possível carregar as configurações do arquivo appsettings.json.");
 
 // API que eu decidi usar para pegar a cotação do ativo
 string url = $"https://brapi.dev/api/v2/stocks/quote?symbols={ativo}";
@@ -74,15 +75,15 @@ void SendAlertEmail(string ativo, double precoAtual, string tipoAlerta, AppSetti
 
 public class SmtpSettings
 {
-    public string Servidor { get; set; }
+    public string Servidor { get; set; } = string.Empty;
     public int Porta { get; set; }
-    public string Usuario { get; set; }
-    public string Senha { get; set; }
+    public string Usuario { get; set; } = string.Empty;
+    public string Senha { get; set; } = string.Empty;
     public bool UsarSsl { get; set; }
 }
 
 public class AppSettings
 {
-    public string EmailDestino { get; set; }
-    public SmtpSettings Smtp { get; set; }
+    public string EmailDestino { get; set; } = string.Empty;
+    public SmtpSettings Smtp { get; set; } = new SmtpSettings();
 }
