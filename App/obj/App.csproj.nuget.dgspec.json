@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "/home/al.thiago.oliveira/Downloads/desafio_inoa/App/App.csproj": {}
+    "/home/al.thiago.oliveira/inoa_desafio/desafio_inoa/App/App.csproj": {}
   },
   "projects": {
-    "/home/al.thiago.oliveira/Downloads/desafio_inoa/App/App.csproj": {
+    "/home/al.thiago.oliveira/inoa_desafio/desafio_inoa/App/App.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/home/al.thiago.oliveira/Downloads/desafio_inoa/App/App.csproj",
+        "projectUniqueName": "/home/al.thiago.oliveira/inoa_desafio/desafio_inoa/App/App.csproj",
         "projectName": "App",
-        "projectPath": "/home/al.thiago.oliveira/Downloads/desafio_inoa/App/App.csproj",
+        "projectPath": "/home/al.thiago.oliveira/inoa_desafio/desafio_inoa/App/App.csproj",
         "packagesPath": "/home/al.thiago.oliveira/.nuget/packages/",
-        "outputPath": "/home/al.thiago.oliveira/Downloads/desafio_inoa/App/obj/",
+        "outputPath": "/home/al.thiago.oliveira/inoa_desafio/desafio_inoa/App/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/home/al.thiago.oliveira/.nuget/NuGet/NuGet.Config"
@@ -24,6 +24,7 @@
         },
         "frameworks": {
           "net8.0": {
+            "framework": "net8.0",
             "targetAlias": "net8.0",
             "projectReferences": {}
           }
@@ -37,10 +38,12 @@
           "enableAudit": "true",
           "auditLevel": "low",
           "auditMode": "direct"
-        }
+        },
+        "SdkAnalysisLevel": "10.0.300"
       },
       "frameworks": {
         "net8.0": {
+          "framework": "net8.0",
           "targetAlias": "net8.0",
           "imports": [
             "net461",
@@ -58,7 +61,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/home/al.thiago.oliveira/.dotnet/sdk/8.0.423/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/home/al.thiago.oliveira/.dotnet/sdk/10.0.302/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

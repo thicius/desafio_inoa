@@ -2,14 +2,23 @@
 using System.Text.Json;
 using System.Net;
 using System.Net.Mail;
+using System.Net.Http;
 
-// lê os argumentos passados na linha de comando
+// verifica se foram passados exatamente 3 argumentos na linha de comando
+if (args.Length != 3)
+{
+    Console.WriteLine("Erro: Informe exatamente 3 argumentos.");
+    Console.WriteLine("Exemplo: dotnet run PETR4 42,34 42,32");
+    return;
+}
+
+// recebe os valores
 string ativo = args[0];
-float venda = float.Parse(args[1]);
-float compra = float.Parse(args[2]);
-Console.WriteLine($"Valores recebidos!\n\nAtivo: {ativo}\nVenda: {venda}\nCompra: {compra}");
+decimal venda = decimal.Parse(args[1]);
+decimal compra = decimal.Parse(args[2]);
+Console.WriteLine($"Valores recebidos!\nAtivo: {ativo}\nVenda: R$ {venda:F2}\nCompra: R$ {compra:F2}\n");
 
-// lê o arquivo com as configurações do e-mail
+// lê o appsettings.json com as configurações do e-mail
 string jsonTexto = File.ReadAllText("appsettings.json");
 AppSettings config = JsonSerializer.Deserialize<AppSettings>(jsonTexto) 
     ?? throw new Exception("Não foi possível carregar as configurações do arquivo appsettings.json.");
@@ -17,40 +26,77 @@ AppSettings config = JsonSerializer.Deserialize<AppSettings>(jsonTexto)
 // API que eu decidi usar para pegar a cotação do ativo
 string url = $"https://brapi.dev/api/v2/stocks/quote?symbols={ativo}";
 using HttpClient client = new HttpClient();
+client.DefaultRequestHeaders.Add("Authorization", $"Bearer {config.BrapiToken}");
 
-try
+// salva o estado atual para evitar spammar o email
+string estadoAtual = "NORMAL"; 
+
+while (true)
 {
-    string json_data = await client.GetStringAsync(url);
-
-    using JsonDocument doc = JsonDocument.Parse(json_data);
-    JsonElement root = doc.RootElement;
-    double precoAtual = root.GetProperty("results")[0].GetProperty("data").GetProperty("regularMarketPrice").GetDouble();
-
-    Console.WriteLine($"Cotação atual de {ativo}: R$ {precoAtual:F2}");
-
-    if (precoAtual > venda)
+    try
     {
-        Console.WriteLine($"Venda! Preço R$ {precoAtual:F2} maior que o limite R$ {venda:F2}. Disparando e-mail...");
-        SendAlertEmail(ativo, precoAtual, "VENDA", config);
+        string json_data = await client.GetStringAsync(url);
+
+        using JsonDocument doc = JsonDocument.Parse(json_data);
+        JsonElement root = doc.RootElement;
+        
+        decimal precoAtual = root.GetProperty("results")[0].GetProperty("data").GetProperty("regularMarketPrice").GetDecimal();
+
+        Console.WriteLine($"Cotação atual de {ativo}: R$ {precoAtual:F2}");
+
+        if (precoAtual > venda)
+        {
+            if (estadoAtual != "VENDA")
+            {
+                Console.WriteLine($"Disparando email de venda! Preço R$ {precoAtual:F2} maior que o limite R$ {venda:F2}.");
+                SendAlertEmail(ativo, precoAtual, "VENDA", config);
+                estadoAtual = "VENDA";
+            }
+            else
+            {
+                Console.WriteLine("O preço continua acima do limite. E-mail de VENDA já foi enviado.");
+            }
+        }
+        else if (precoAtual < compra)
+        {
+            if (estadoAtual != "COMPRA")
+            {
+                Console.WriteLine($"Disparando email de compra! Preço R$ {precoAtual:F2} menor que o limite R$ {compra:F2}");
+                SendAlertEmail(ativo, precoAtual, "COMPRA", config);
+                estadoAtual = "COMPRA";
+            }
+            else
+            {
+                Console.WriteLine("O preço continua abaixo do limite. E-mail de COMPRA já foi enviado.");
+            }
+        }
+        else
+        {
+            if (estadoAtual != "NORMAL")
+            {
+                Console.WriteLine($"O preço do ativo {ativo} voltou para a faixa normal.");
+                estadoAtual = "NORMAL";
+            }
+            else
+            {
+                Console.WriteLine($"O preço do ativo {ativo} está dentro da faixa desejada.");
+            }
+        }
     }
-    else if (precoAtual < compra)
+    catch (HttpRequestException e)
     {
-        Console.WriteLine($"Compre! Preço R$ {precoAtual:F2} menor que o limite R$ {compra:F2}. Disparando e-mail...");
-        SendAlertEmail(ativo, precoAtual, "COMPRA", config);
+        Console.WriteLine($"Erro de conexão com a API: {e.Message}");
     }
-    else
+    catch (Exception ex)
     {
-        Console.WriteLine($"O preço do ativo {ativo} está dentro da faixa desejada.");
+        Console.WriteLine($"Falha ao checar o preço: {ex.Message}");
     }
+
+    Console.WriteLine("Esperando para ver se o preço mudou...\n");
+    await Task.Delay(TimeSpan.FromMinutes(0.5));
 }
-catch (Exception)
-{
-    Console.WriteLine("Deu erro!");
-    throw;
-}
-//  mais um catch?
 
-void SendAlertEmail(string ativo, double precoAtual, string tipoAlerta, AppSettings config)
+void SendAlertEmail(string ativo, decimal precoAtual, string tipoAlerta, AppSettings config)
 {
     try
     {
@@ -67,9 +113,13 @@ void SendAlertEmail(string ativo, double precoAtual, string tipoAlerta, AppSetti
         smtp.Send(mail);
         Console.WriteLine($"E-mail de alerta enviado com sucesso para {config.EmailDestino}.");
     }
-    catch (Exception ex)
+    catch (SmtpException e)
     {
-        Console.WriteLine($"Erro ao enviar e-mail: {ex.Message}");
+        Console.WriteLine($"Erro no servidor SMTP: {e.Message}");
+    }
+    catch (Exception e)
+    {
+        Console.WriteLine($"Erro inesperado ao enviar o e-mail: {e.Message}");
     }
 }
 
@@ -85,5 +135,6 @@ public class SmtpSettings
 public class AppSettings
 {
     public string EmailDestino { get; set; } = string.Empty;
+    public string BrapiToken { get; set; } = string.Empty;
     public SmtpSettings Smtp { get; set; } = new SmtpSettings();
 }
