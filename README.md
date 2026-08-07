@@ -56,3 +56,154 @@ Escolhi `decimal` para os preços porque tem mais precisão que `float` ou `doub
 ---
 
 ## 2. Enviando um e-mail através do C#
+
+A segunda questão foi descobrir como fazer o programa enviar um e-mail. Nesta etapa algumas referências na internet foram muito úteis, dentre elas:
+- [Como Enviar E-mails com C# via SMTP - EP5 C# Na Prática
+](https://youtu.be/OGuQu13OiZk?si=hGX6qzb1YZJloyHL)
+-[SmtpClient.Send Método
+](https://learn.microsoft.com/pt-br/dotnet/api/system.net.mail.smtpclient.send?view=net-10.0) 
+
+Os links acima são antigos e de fato o `System.Net.Mail.SmtpClient` está obsoleto, mas serviram para esta tarefa.
+
+Um primeiro teste poderia ser feito criando a mensagem diretamente no código:
+
+```csharp
+MailMessage mail = new MailMessage();
+
+mail.From = new MailAddress(usuario);
+mail.To.Add(destinatario);
+mail.Subject = "Alerta";
+mail.Body = "Mensagem de teste";
+```
+
+Depois é necessário configurar o servidor SMTP:
+
+```csharp
+using SmtpClient smtp = new SmtpClient(servidor, porta);
+
+smtp.Credentials = new NetworkCredential(usuario, senha);
+smtp.EnableSsl = true;
+
+smtp.Send(mail);
+```
+
+### Configuração através do `appsettings.json`
+
+Criei o `appsettings.json` com a seguinte estrutura:
+
+```json
+{
+  "EmailDestino": "destinatario@example.com",
+  "BrapiToken": "SEU_TOKEN",
+  "Smtp": {
+    "Servidor": "smtp.example.com",
+    "Porta": 587,
+    "Usuario": "usuario@example.com",
+    "Senha": "SUA_SENHA",
+    "UsarSsl": true
+  }
+}
+```
+
+O arquivo é lido pelo programa:
+
+```csharp
+string jsonTexto = File.ReadAllText("appsettings.json");
+
+AppSettings config =
+    JsonSerializer.Deserialize<AppSettings>(jsonTexto)
+    ?? throw new Exception(
+        "Não foi possível carregar as configurações do arquivo appsettings.json.");
+```
+
+Para transformar o JSON em objetos, criei as classes `AppSettings` e `SmtpSettings`.
+Então até aqui, já temos uma maneira de fazer o programa enviar um e-mail sem deixar as configurações diretamente no código.
+
+---
+
+## 3. Consultando continuamente a cotação através de uma API
+
+Nesta etapa, depois de uma rápida pesquisa decidi utilizar a API da [Brapi](https://brapi.dev/) para disponibilizar os dados de ações da B3.
+
+A URL da consulta depende do ativo recebido na linha de comando:
+
+```csharp
+string url =
+    $"https://brapi.dev/api/v2/stocks/quote?symbols={ativo}";
+```
+
+Como a API utiliza um token de acesso, coloquei esse token no `appsettings.json`, junto das outras configuraçõe.
+Fiz os testes com uma conta gratuita na Brapi que tem alguns limites, como o número de requisições por mês.
+
+O token é enviado no cabeçalho da requisição:
+
+```csharp
+client.DefaultRequestHeaders.Add(
+    "Authorization",
+    $"Bearer {config.BrapiToken}");
+```
+
+### Interpretando a resposta da API
+
+A resposta da Brapi é um JSON. Assim, depois de realizar a requisição precisei descobrir como acessar dentro desse JSON exatamente o campo que continha a cotação.
+
+Utilizei `JsonDocument` para interpretar a resposta:
+
+```csharp
+using JsonDocument doc = JsonDocument.Parse(json_data);
+JsonElement root = doc.RootElement;
+```
+
+A partir da estrutura dada pela API, o preço atual é obtido através de:
+
+```csharp
+decimal precoAtual =
+    root.GetProperty("results")[0]
+        .GetProperty("data")
+        .GetProperty("regularMarketPrice")
+        .GetDecimal();
+```
+
+Depois disso, finalmente tinha no programa as três informações necessárias para resolver o problema.
+
+---
+
+## 4. Estrutura da regra de compra, venda e monitoramento
+
+Com os três preços disponíveis, a estrutura principal do programa passa a ser algo como:
+
+Se o preço atual for maior que o preço de venda, o programa deve enviar um alerta de venda.
+Se o preço atual for menor que o preço de compra, devemos enviar um alerta de compra.
+E no caso contrário, o preço estaria dentro do intervalo definido e nada precisa ser feito.
+
+Em código:
+
+```csharp
+if (precoAtual > venda)
+{
+    // VENDA
+}
+else if (precoAtual < compra)
+{
+    // COMPRA
+}
+else
+{
+    // dentro da faixa
+}
+```
+
+Como o programa deve continuar monitorando enquanto estiver rodando, basta acolocar essa consulta dentro de um loop `while (true)`:
+
+```csharp
+while (true)
+{
+    // consulta a API
+    // verifica o preço
+    // envia alerta se necessário
+
+    await Task.Delay(TimeSpan.FromMinutes(TempoEspera));
+}
+```
+
+Após cada consulta, o programa espera um tempo pré-definido antes de consultar novamente.
