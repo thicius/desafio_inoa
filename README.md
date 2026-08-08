@@ -202,11 +202,11 @@ while (true)
     // verifica o preço
     // envia alerta se necessário
 
-    await Task.Delay(TimeSpan.FromMinutes(TempoEspera));
+    await Task.Delay(TimeSpan.FromMinutes(0.5));
 }
 ```
-
-Após cada consulta, o programa espera um tempo pré-definido antes de consultar novamente.
+Atualmente, o programa espera 30 segundos entre cada consulta. 
+O valor pode ser alterado diretamente no código caso seja necessário utilizar outro intervalo.
 
 ### Evitando o envio repetido de e-mails
 
@@ -241,3 +241,61 @@ O mesmo raciocínio vale pro caso de compra. Mas quando o preço volta para dent
 Fiquei em dúvida se deveria mandar um email pro caso em que o preço atual volta para dentro do "intervalo normal", optei por mostrar apenas no console.
 
 Adicionei um tratamento para erros de conexão com a API e no servidor SMTP. A intenção era de informar no console o que aconteceu sem encerrar o monitoramento por causa de uma falha momentânea.
+
+---
+
+# 5. Como executar
+
+## Requisitos
+
+* Sistema compatível com .NET 8;
+* .NET SDK 8.0 ou superior;
+* Token de acesso da Brapi;
+* Conta de e-mail com acesso a um servidor SMTP.
+
+## Configuração
+
+Antes de executar o programa, é necessário criar um arquivo `appsettings.json` e preencher as informações de acesso à Brapi e ao servidor SMTP.
+
+```json
+{
+  "EmailDestino": "destinatario@example.com",
+  "BrapiToken": "SEU_TOKEN",
+  "Smtp": {
+    "Servidor": "smtp.example.com",
+    "Porta": 587,
+    "Usuario": "usuario@example.com",
+    "Senha": "SUA_SENHA",
+    "UsarSsl": true
+  }
+}
+```
+
+## Execução
+
+Na pasta do projeto:
+
+```bash
+dotnet restore
+```
+
+Depois:
+
+```bash
+dotnet run -- PETR4 42.34 42.32
+```
+
+Os argumentos devem ser informados na seguinte ordem:
+
+```text
+ATIVO PREÇO_DE_VENDA PREÇO_DE_COMPRA
+```
+
+# 6. Sobre o Uso de Inteligência Artificial
+
+Durante o desenvolvimento, utilizei ferramentas de Inteligência Artificial principalmente para **tirar dúvidas sobre certas funções do C# e revisar o código desenvolvido**.
+
+A implementação e as decisões principais foram feitas durante o desenvolvimento do projeto, enquanto a IA foi utilizada como apoio nas tarefas mencionadas acima e sugerir melhorias.
+
+Grande parte dos tratamentos de erro presentes `catch (Exception e)` na versão final surgiu durante essas revisões.
+
