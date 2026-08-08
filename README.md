@@ -207,3 +207,37 @@ while (true)
 ```
 
 Após cada consulta, o programa espera um tempo pré-definido antes de consultar novamente.
+
+### Evitando o envio repetido de e-mails
+
+Note que se o preço permanecesse acima do limite de venda durante vários minutos, o programa enviaria um e-mail a cada consulta.
+Supus que o alerta deve ocorrer **quando o ativo entra** em uma das situações, e não enquanto ele simplesmente continua nela.
+
+Para isso, criei uma variável que representa o estado atual, que começa sendo `NORMAL`, mas pode tomar os valores:
+
+```text
+NORMAL
+VENDA
+COMPRA
+```
+
+Quando o preço ultrapassa o limite de venda, o programa verifica se já estava no estado `VENDA`:
+
+```csharp
+if (precoAtual > venda)
+{
+    if (estadoAtual != "VENDA")
+    {
+        SendAlertEmail(ativo, precoAtual, "VENDA", config);
+        estadoAtual = "VENDA";
+    }
+}
+```
+
+Dessa forma, o primeiro cruzamento gera o e-mail e altera o estado para `VENDA`. Nas próximas consultas, enquanto o preço continuar acima do limite, nenhum novo e-mail é enviado. 
+
+O mesmo raciocínio vale pro caso de compra. Mas quando o preço volta para dentro do intervalo, o estado volta para `NORMAL`:
+
+Fiquei em dúvida se deveria mandar um email pro caso em que o preço atual volta para dentro do "intervalo normal", optei por mostrar apenas no console.
+
+Adicionei um tratamento para erros de conexão com a API e no servidor SMTP. A intenção era de informar no console o que aconteceu sem encerrar o monitoramento por causa de uma falha momentânea.
