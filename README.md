@@ -30,7 +30,7 @@ As principais perguntas que levaram a resolução deste problema surgiram aproxi
 
 ## 1. Recebendo os argumentos da linha de comando
 
-Como o programa deve ser executado através da linha de comando, a primeira coisa a resolver é a forma como o programa recebe os três valores definidos no enunciado.o que é feito por meio da variável `args`.
+Como o programa deve ser executado através da linha de comando, a primeira coisa a resolver é a forma como o programa recebe os três valores definidos no enunciado, o que é feito por meio da variável `args`.
 
 Inicialmente eu havia postos varias verificações: se o usuário está passando três argumentos, se os dois últimos são numéricos, se está usando vírgula ou ponto. Mas no fim, por simplicidade eu deixei apenas o seguinte:
 
@@ -244,7 +244,18 @@ Adicionei um tratamento para erros de conexão com a API e no servidor SMTP. A i
 
 ---
 
-# 5. Como executar
+# 5. Arquitetura e Organização do Código
+
+Para manter o código limpo a solução foi dividida em quatro arquivos principais, isolando cada papel do sistema:
+
+*   **`ConfigManager.cs`**: Lê o arquivo `appsettings.json` e mapeia as configurações para as classes de modelo (`AppSettings` e `SmtpSettings`).
+*   **`BrapiService.cs`**: Isola a comunicação HTTP com a API da Brapi e faz o parse da resposta JSON para extrair o preço atual do ativo.
+*   **`EmailService.cs`**: Contém a lógica de montagem e envio de e-mails de alerta via protocolo SMTP.
+*   **`Program.cs`**: Recebe os argumentos de linha de comando, inicializa os serviços e executa o loop de monitoramento mantendo o estado (`NORMAL`, `VENDA`, `COMPRA`).
+
+---
+
+# 6. Como executar
 
 ## Requisitos
 
@@ -291,9 +302,9 @@ Os argumentos devem ser informados na seguinte ordem:
 ATIVO PREÇO_DE_VENDA PREÇO_DE_COMPRA
 ```
 
-# 6. Sobre o Uso de Inteligência Artificial
+# 7. Sobre o Uso de Inteligência Artificial
 
-Durante o desenvolvimento, utilizei ferramentas de Inteligência Artificial principalmente para **tirar dúvidas sobre certas funções do C# e revisar o código desenvolvido**.
+Durante o desenvolvimento, utilizei ferramentas de Inteligência Artificial principalmente para **tirar dúvidas sobre certas funções do C# e revisar o código desenvolvido**. A lógica de controle de estado para não spammar e-mails, o fluxo de decisão e a arquitetura geral foram desenvolvidas inteiramente por mim.
 
 A implementação e as decisões principais foram feitas durante o desenvolvimento do projeto, enquanto a IA foi utilizada como apoio nas tarefas mencionadas acima e sugerir melhorias.
 
