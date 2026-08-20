@@ -1,4 +1,4 @@
-# Desafio Inoa: Stock Quote Alert
+# Stock Quote Alert
 
 Script que monitora continuamente a cotação de um ativo da B3 e permite enviar um alerta por e-mail quando a cotação está abaixo do valor de compra ou acima do valor de venda. 
 
